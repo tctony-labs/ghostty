@@ -3010,6 +3010,25 @@ fn promptClickLine(self: *Screen, click_pin: Pin) PromptClickMove {
     const cursor_pin = self.cursor.page_pin.*;
     if (cursor_pin.eql(click_pin)) return .zero;
 
+    const click_row = click_pin.rowAndCell().row;
+
+    // A prompt-only row is decoration, not a cursor destination. Continue
+    // through soft wraps because a long prompt can share its final row with
+    // input, but stop at a hard line break such as a two-line shell prompt.
+    if (click_row.semantic_prompt != .none) {
+        var row_pin = click_pin;
+        prompt: while (true) {
+            const rac = row_pin.rowAndCell();
+            const cells = row_pin.node.data.getCells(rac.row);
+            for (cells) |cell| {
+                if (cell.semantic_content == .input) break :prompt;
+            }
+
+            if (!rac.row.wrap) return .zero;
+            row_pin = row_pin.down(1) orelse return .zero;
+        }
+    }
+
     // If our cursor is before our click, we're only emitting right inputs.
     if (cursor_pin.before(click_pin)) {
         var count: usize = 0;
