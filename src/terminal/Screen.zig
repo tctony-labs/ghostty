@@ -10204,6 +10204,47 @@ test "Screen: promptClickMove line left basic" {
     try testing.expectEqual(@as(usize, 0), result.right);
 }
 
+test "Screen: promptClickMove ignores click on prompt-only line" {
+    const testing = std.testing;
+    const alloc = testing.allocator;
+
+    var s = try init(alloc, .{ .cols = 40, .rows = 5, .max_scrollback = 0 });
+    defer s.deinit();
+
+    s.semantic_prompt.click = .{ .cl = .line };
+
+    s.cursorSetSemanticContent(.{ .prompt = .initial });
+    try s.testWriteString("[user@host project branch]\n% ");
+    s.cursorSetSemanticContent(.{ .input = .clear_explicit });
+    try s.testWriteString("gff delete");
+
+    const click_on_branch = s.pages.pin(.{ .active = .{ .x = 20, .y = 0 } }).?;
+    const result = s.promptClickMove(click_on_branch);
+
+    try testing.expectEqual(PromptClickMove.zero, result);
+}
+
+test "Screen: promptClickMove allows prompt click on row containing input" {
+    const testing = std.testing;
+    const alloc = testing.allocator;
+
+    var s = try init(alloc, .{ .cols = 20, .rows = 5, .max_scrollback = 0 });
+    defer s.deinit();
+
+    s.semantic_prompt.click = .{ .cl = .line };
+
+    s.cursorSetSemanticContent(.{ .prompt = .initial });
+    try s.testWriteString("> ");
+    s.cursorSetSemanticContent(.{ .input = .clear_explicit });
+    try s.testWriteString("hello");
+
+    const click_on_prompt = s.pages.pin(.{ .active = .{ .x = 0, .y = 0 } }).?;
+    const result = s.promptClickMove(click_on_prompt);
+
+    try testing.expectEqual(@as(usize, 5), result.left);
+    try testing.expectEqual(@as(usize, 0), result.right);
+}
+
 test "Screen: promptClickMove line left skips non-input cells" {
     const testing = std.testing;
     const alloc = testing.allocator;
