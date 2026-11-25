@@ -160,6 +160,9 @@ pub const Command = union(Key) {
     /// https://uapi-group.org/specifications/specs/osc_context/
     context_signal: parsers.context_signal.Command,
 
+    /// OSC 7501. Codex TUI program status.
+    codex_program_status: CodexProgramStatus,
+
     pub const SemanticPrompt = parsers.semantic_prompt.Command;
 
     pub const KittyClipboardProtocol = parsers.kitty_clipboard_protocol.OSC;
@@ -193,8 +196,24 @@ pub const Command = union(Key) {
             "kitty_text_sizing",
             "kitty_clipboard_protocol",
             "context_signal",
+            "codex_program_status",
         },
     );
+
+    // Sync with ghostty_action_codex_program_status_e.
+    pub const CodexProgramStatus = enum(c_int) {
+        clear,
+        idle,
+        working,
+        blocked,
+        done,
+        @"error",
+
+        test "ghostty.h Command.CodexProgramStatus" {
+            if (comptime build_options.artifact == .lib) return error.SkipZigTest;
+            try lib.checkGhosttyHEnum(CodexProgramStatus, "GHOSTTY_CODEX_PROGRAM_STATUS_");
+        }
+    };
 
     pub const ProgressReport = struct {
         pub const State = enum(c_int) {
@@ -359,6 +378,9 @@ pub const Parser = struct {
         @"133",
         @"552",
         @"777",
+        @"75",
+        @"750",
+        @"7501",
         @"1337",
         @"5522",
     };
@@ -422,6 +444,7 @@ pub const Parser = struct {
             .kitty_text_sizing,
             .kitty_clipboard_protocol,
             .context_signal,
+            .codex_program_status,
             => {},
         }
 
@@ -691,7 +714,18 @@ pub const Parser = struct {
 
             .@"7" => switch (c) {
                 ';' => self.captureTrailing(.fixed),
+                '5' => self.state = .@"75",
                 '7' => self.state = .@"77",
+                else => self.state = .invalid,
+            },
+
+            .@"75" => switch (c) {
+                '0' => self.state = .@"750",
+                else => self.state = .invalid,
+            },
+
+            .@"750" => switch (c) {
+                '1' => self.state = .@"7501",
                 else => self.state = .invalid,
             },
 
@@ -727,6 +761,7 @@ pub const Parser = struct {
             .@"0",
             .@"22",
             .@"777",
+            .@"7501",
             .@"8",
             .@"9",
             => switch (c) {
@@ -812,6 +847,10 @@ pub const Parser = struct {
             .@"552" => null,
 
             .@"777" => parsers.rxvt_extension.parse(self, terminator_ch),
+
+            .@"75", .@"750" => null,
+
+            .@"7501" => parsers.codex_program_status.parse(self, terminator_ch),
 
             .@"1337" => parsers.iterm2.parse(self, terminator_ch),
 

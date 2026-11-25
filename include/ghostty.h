@@ -863,6 +863,15 @@ typedef struct {
   int8_t progress;
 } ghostty_action_progress_report_s;
 
+typedef enum {
+  GHOSTTY_CODEX_PROGRAM_STATUS_CLEAR,
+  GHOSTTY_CODEX_PROGRAM_STATUS_IDLE,
+  GHOSTTY_CODEX_PROGRAM_STATUS_WORKING,
+  GHOSTTY_CODEX_PROGRAM_STATUS_BLOCKED,
+  GHOSTTY_CODEX_PROGRAM_STATUS_DONE,
+  GHOSTTY_CODEX_PROGRAM_STATUS_ERROR,
+} ghostty_action_codex_program_status_e;
+
 // apprt.action.CommandFinished.C
 typedef struct {
   // -1 if no exit code was reported, otherwise 0-255
@@ -968,6 +977,7 @@ typedef enum {
   GHOSTTY_ACTION_SEARCH_SELECTED,
   GHOSTTY_ACTION_READONLY,
   GHOSTTY_ACTION_COPY_TITLE_TO_CLIPBOARD,
+  GHOSTTY_ACTION_CODEX_PROGRAM_STATUS,
 } ghostty_action_tag_e;
 
 typedef union {
@@ -1009,6 +1019,7 @@ typedef union {
   ghostty_action_search_total_s search_total;
   ghostty_action_search_selected_s search_selected;
   ghostty_action_readonly_e readonly;
+  ghostty_action_codex_program_status_e codex_program_status;
 } ghostty_action_u;
 
 typedef struct {

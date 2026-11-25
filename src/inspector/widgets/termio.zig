@@ -566,6 +566,7 @@ const VTEvent = struct {
 
         // Add additional fields to metadata
         switch (osc) {
+            .codex_program_status => |status| try md.put("state", @tagName(status)),
             inline else => |v, tag| if (tag == osc) {
                 try encodeMetadata(alloc, md, v);
             },

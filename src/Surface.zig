@@ -1185,6 +1185,10 @@ pub fn handleMessage(self: *Surface, msg: Message) !void {
             }
         },
 
+        .codex_program_status => |value| {
+            _ = try self.rt_app.performAction(.{ .surface = self }, .codex_program_status, value);
+        },
+
         .selection_scroll_tick => |active| {
             self.selection_scroll_active = active;
             try self.selectionScrollTick();
