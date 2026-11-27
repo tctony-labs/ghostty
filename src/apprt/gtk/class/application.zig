@@ -729,7 +729,7 @@ pub const Application = extern struct {
 
             .progress_report => return Action.progressReport(target, value),
 
-            .codex_program_status => return false,
+            .program_status => return false,
 
             .prompt_title => return Action.promptTitle(target, value),
 

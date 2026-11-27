@@ -92,8 +92,12 @@ pub const Message = union(enum) {
     /// Report the progress of an action using a GUI element
     progress_report: terminal.osc.Command.ProgressReport,
 
-    /// Lifecycle state reported by the Codex TUI in this surface.
-    codex_program_status: terminal.osc.Command.CodexProgramStatus,
+    /// Program status reported in this surface.
+    program_status: struct {
+        app: terminal.osc.Command.ProgramStatus.App,
+        state: terminal.osc.Command.ProgramStatus.State,
+        data: WriteReq,
+    },
 
     /// Read-only tmux control-mode state for embedded runtimes.
     tmux_control: TmuxControlMsg,

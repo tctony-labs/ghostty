@@ -284,11 +284,19 @@ pub const App = struct {
         // embedded apprt.
         self.performPreAction(target, action, value);
 
-        log.debug("dispatching action target={t} action={} value={any}", .{
-            target,
-            action,
-            value,
-        });
+        if (comptime action == .program_status) {
+            log.debug("dispatching program status target={t} app={t} state={t}", .{
+                target,
+                value.app,
+                value.state,
+            });
+        } else {
+            log.debug("dispatching action target={t} action={} value={any}", .{
+                target,
+                action,
+                value,
+            });
+        }
         return self.opts.action(
             self,
             target.cval(),

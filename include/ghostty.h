@@ -864,13 +864,28 @@ typedef struct {
 } ghostty_action_progress_report_s;
 
 typedef enum {
-  GHOSTTY_CODEX_PROGRAM_STATUS_CLEAR,
-  GHOSTTY_CODEX_PROGRAM_STATUS_IDLE,
-  GHOSTTY_CODEX_PROGRAM_STATUS_WORKING,
-  GHOSTTY_CODEX_PROGRAM_STATUS_BLOCKED,
-  GHOSTTY_CODEX_PROGRAM_STATUS_DONE,
-  GHOSTTY_CODEX_PROGRAM_STATUS_ERROR,
-} ghostty_action_codex_program_status_e;
+  GHOSTTY_PROGRAM_STATUS_APP_UNSPECIFIED,
+  GHOSTTY_PROGRAM_STATUS_APP_CODEX,
+  GHOSTTY_PROGRAM_STATUS_APP_CLAUDE_CODE,
+} ghostty_program_status_app_e;
+
+typedef enum {
+  GHOSTTY_PROGRAM_STATUS_STATE_CLEAR,
+  GHOSTTY_PROGRAM_STATUS_STATE_IDLE,
+  GHOSTTY_PROGRAM_STATUS_STATE_WORKING,
+  GHOSTTY_PROGRAM_STATUS_STATE_BLOCKED,
+  GHOSTTY_PROGRAM_STATUS_STATE_DONE,
+  GHOSTTY_PROGRAM_STATUS_STATE_ERROR,
+  GHOSTTY_PROGRAM_STATUS_STATE_QUERY,
+} ghostty_program_status_state_e;
+
+// The OSC payload is valid for the duration of the action callback.
+typedef struct {
+  ghostty_program_status_app_e app;
+  ghostty_program_status_state_e state;
+  const uint8_t* payload;
+  size_t payload_len;
+} ghostty_action_program_status_s;
 
 // apprt.action.CommandFinished.C
 typedef struct {
@@ -977,7 +992,7 @@ typedef enum {
   GHOSTTY_ACTION_SEARCH_SELECTED,
   GHOSTTY_ACTION_READONLY,
   GHOSTTY_ACTION_COPY_TITLE_TO_CLIPBOARD,
-  GHOSTTY_ACTION_CODEX_PROGRAM_STATUS,
+  GHOSTTY_ACTION_PROGRAM_STATUS,
 } ghostty_action_tag_e;
 
 typedef union {
@@ -1019,7 +1034,7 @@ typedef union {
   ghostty_action_search_total_s search_total;
   ghostty_action_search_selected_s search_selected;
   ghostty_action_readonly_e readonly;
-  ghostty_action_codex_program_status_e codex_program_status;
+  ghostty_action_program_status_s program_status;
 } ghostty_action_u;
 
 typedef struct {

@@ -343,8 +343,8 @@ pub const Action = union(Key) {
     /// otherwise the terminal-set title.
     copy_title_to_clipboard,
 
-    /// Lifecycle state reported by the Codex TUI in this surface.
-    codex_program_status: terminal.osc.Command.CodexProgramStatus,
+    /// Program status reported in this surface.
+    program_status: terminal.osc.Command.ProgramStatus,
 
     /// Sync with: ghostty_action_tag_e
     pub const Key = enum(c_int) {
@@ -413,7 +413,7 @@ pub const Action = union(Key) {
         search_selected,
         readonly,
         copy_title_to_clipboard,
-        codex_program_status,
+        program_status,
 
         test "ghostty.h Action.Key" {
             try lib.checkGhosttyHEnum(Key, "GHOSTTY_ACTION_");

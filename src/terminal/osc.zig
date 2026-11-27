@@ -160,8 +160,8 @@ pub const Command = union(Key) {
     /// https://uapi-group.org/specifications/specs/osc_context/
     context_signal: parsers.context_signal.Command,
 
-    /// OSC 7501. Codex TUI program status.
-    codex_program_status: CodexProgramStatus,
+    /// OSC 7501. Terminal program status.
+    program_status: ProgramStatus,
 
     pub const SemanticPrompt = parsers.semantic_prompt.Command;
 
@@ -196,22 +196,52 @@ pub const Command = union(Key) {
             "kitty_text_sizing",
             "kitty_clipboard_protocol",
             "context_signal",
-            "codex_program_status",
+            "program_status",
         },
     );
 
-    // Sync with ghostty_action_codex_program_status_e.
-    pub const CodexProgramStatus = enum(c_int) {
-        clear,
-        idle,
-        working,
-        blocked,
-        done,
-        @"error",
+    pub const ProgramStatus = struct {
+        pub const App = enum(c_int) {
+            unspecified,
+            codex,
+            claude_code,
+        };
 
-        test "ghostty.h Command.CodexProgramStatus" {
+        pub const State = enum(c_int) {
+            clear,
+            idle,
+            working,
+            blocked,
+            done,
+            @"error",
+            query,
+        };
+
+        app: App = .unspecified,
+        state: State,
+        payload: []const u8 = "",
+
+        // Sync with ghostty_action_program_status_s.
+        pub const C = extern struct {
+            app: App,
+            state: State,
+            payload: [*]const u8,
+            payload_len: usize,
+        };
+
+        pub fn cval(self: ProgramStatus) C {
+            return .{
+                .app = self.app,
+                .state = self.state,
+                .payload = self.payload.ptr,
+                .payload_len = self.payload.len,
+            };
+        }
+
+        test "ghostty.h Command.ProgramStatus" {
             if (comptime build_options.artifact == .lib) return error.SkipZigTest;
-            try lib.checkGhosttyHEnum(CodexProgramStatus, "GHOSTTY_CODEX_PROGRAM_STATUS_");
+            try lib.checkGhosttyHEnum(App, "GHOSTTY_PROGRAM_STATUS_APP_");
+            try lib.checkGhosttyHEnum(State, "GHOSTTY_PROGRAM_STATUS_STATE_");
         }
     };
 
@@ -444,7 +474,7 @@ pub const Parser = struct {
             .kitty_text_sizing,
             .kitty_clipboard_protocol,
             .context_signal,
-            .codex_program_status,
+            .program_status,
             => {},
         }
 
@@ -850,7 +880,7 @@ pub const Parser = struct {
 
             .@"75", .@"750" => null,
 
-            .@"7501" => parsers.codex_program_status.parse(self, terminator_ch),
+            .@"7501" => parsers.program_status.parse(self, terminator_ch),
 
             .@"1337" => parsers.iterm2.parse(self, terminator_ch),
 

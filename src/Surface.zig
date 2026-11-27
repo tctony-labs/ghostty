@@ -1185,8 +1185,17 @@ pub fn handleMessage(self: *Surface, msg: Message) !void {
             }
         },
 
-        .codex_program_status => |value| {
-            _ = try self.rt_app.performAction(.{ .surface = self }, .codex_program_status, value);
+        .program_status => |value| {
+            defer value.data.deinit();
+            const handled = try self.rt_app.performAction(
+                .{ .surface = self },
+                .program_status,
+                .{ .app = value.app, .state = value.state, .payload = value.data.slice() },
+            );
+            // Only advertise the protocol when the embedder consumes the action.
+            if (handled and value.state == .query) {
+                self.queueIo(.{ .write_stable = "\x1b]7501;?\x1b\\" }, .unlocked);
+            }
         },
 
         .selection_scroll_tick => |active| {
